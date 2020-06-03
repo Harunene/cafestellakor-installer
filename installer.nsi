@@ -7,9 +7,9 @@ Var ImageHandle
 !addincludedir "includes"
 !addplugindir /x86-unicode "plugins"
 
-!define EM_BrandingText "카페 스텔라와 사신의 나비 비공식 한국어 패치 1.0"
+!define EM_BrandingText "카페 스텔라와 사신의 나비 비공식 한국어 패치 1.1"
 Name "${EM_BrandingText}"
-OutFile "catestella_korpatch.exe"
+OutFile "CafeStella_korpatch.exe"
 RequestExecutionLevel user
 Unicode True
 InstallDir $EXEDIR
@@ -29,7 +29,7 @@ XPStyle on
 
 !define MUI_ICON "icon.ico"
 !define MUI_UNICON "icon.ico"
-!define MUI_TEXT_WELCOME_INFO_TEXT "주의!$\n기존 세이브파일은 이용불가하며 savedata_backup으로 백업됩니다. 언인스톨러를 실행하면 원래대로 복원됩니다."
+!define MUI_TEXT_WELCOME_INFO_TEXT "주의!$\n$\n기존 세이브파일은 savedata_backup으로 백업됩니다.$\n$\n언인스톨러를 실행하면 원래대로 복원됩니다.$\n$\n기존 세이브파일을 쓰시려면 (비권장)$\n인스톨러가 끝난 후에 savedata_backup을 savedata로 직접 바꿔주시고 꼭 게임 내 설정에서 폰트를 NOTOYUZU로 선택해주세요!"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "images\welcome.bmp"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP "images\header.bmp"
@@ -79,17 +79,17 @@ FunctionEnd
 Function validateDirectory
   CreateDirectory "$InstDir\dummy"
   ${If} ${Errors}
-    MessageBox MB_OK `설치 권한이 없습니다. 관리자권한으로 설치를 다시 시작합니다.`
+    MessageBox MB_OK `설치 권한이 없습니다. 관리자 권한으로 설치를 다시 시작합니다.`
     !insertmacro Init_UAC "Installer"
-    Quit
+	Quit
   ${EndIf}
   RMDir "$InstDir\dummy"
 
   Crypto::HashFile 'MD5' "$InstDir\patch.xp3"
   Pop $0
   StrCmp $0 "3087402b3629ebda59a3613525b4b553" +4 ; 패키지판 hash
-  StrCmp $0 "65dc396277079c5c93b8ae754031bfe4" +3 ; 다운로드판 hash
-    MessageBox MB_YESNO "설치된 게임이 카페 스텔라와 사신의 나비 1.30버전이 아닌것으로 확인됩니다. 그래도 설치하시겠습니까?" IDYES yep
+  ;StrCmp $0 "65dc396277079c5c93b8ae754031bfe4" +3 ; 다운로드판 hash
+    MessageBox MB_YESNO "설치된 게임이 카페 스텔라와 사신의 나비 1.30 버전이 아닌것으로$\n확인됩니다. (해당 한국어 패치는 패키지판만을 지원합니다)$\n그래도 설치하시겠습니까?" IDYES yep
     Abort
   yep:
 
@@ -113,26 +113,48 @@ Section "Dummy Section" SecDummy
     Rename "$INSTDIR\savedata_kr" "$INSTDIR\savedata"
   ${EndIf}
 
+  Delete "$INSTDIR\Cafestella_KR_Uninstall.exe"
+  Delete "$INSTDIR\CafeStella_KR_uninstall.exe"
+  Delete "$INSTDIR\CafeStella_KR.exe"
+  Delete "$INSTDIR\krkrPatch.db"
+  Delete "$INSTDIR\krkrPatch.dll"
+  Delete "$INSTDIR\patch_KR2.xp3"
+  RMDir /r "$INSTDIR\video"
+  RMDir /r "$INSTDIR\patch_KR"
+  RMDir /r "$INSTDIR\patch_KR2"
+  
   File CafeStella_KR.exe
   File krkrPatch.dll
+  File krkrPatch.db
+  File patch_KR2.xp3
   File /r video
   File /r patch_KR
+  File /r patch_KR2
   
   !insertmacro check_file_installed "CafeStella_KR.exe"
   !insertmacro check_file_installed "krkrPatch.dll"
 
   ;Create uninstaller
-  WriteUninstaller "$INSTDIR\Cafestella_KR_Uninstall.exe"
+  WriteUninstaller "$INSTDIR\CafeStella_KR_uninstall.exe"
 
 SectionEnd
 
 Section "Uninstall"
-
-  Delete "$INSTDIR\Cafestella_KR_Uninstall.exe"
+  CreateDirectory "$InstDir\dummy"
+  ${If} ${Errors}
+    MessageBox MB_OK `설치 권한이 없습니다. 관리자 권한으로 설치를 다시 시작합니다.`
+    !insertmacro Init_UAC "Uninstall"
+	Quit
+  ${EndIf}
+  
+  Delete "$INSTDIR\CafeStella_KR_uninstall.exe"
   Delete "$INSTDIR\CafeStella_KR.exe"
   Delete "$INSTDIR\krkrPatch.dll"
+  Delete "$INSTDIR\krkrPatch.db"
+  Delete "$INSTDIR\patch_KR2.xp3"
   RMDir /r "$INSTDIR\video"
   RMDir /r "$INSTDIR\patch_KR"
+  RMDir /r "$INSTDIR\patch_KR2"
 
   Rename "$INSTDIR\savedata" "$INSTDIR\savedata_kr"
   Rename "$INSTDIR\savedata_backup" "$INSTDIR\savedata"
