@@ -10,7 +10,7 @@ Var ImageHandle
 !define EM_BrandingText "카페 스텔라와 사신의 나비 비공식 한국어 패치 1.1"
 Name "${EM_BrandingText}"
 OutFile "CafeStella_korpatch.exe"
-RequestExecutionLevel user
+RequestExecutionLevel admin
 Unicode True
 InstallDir $EXEDIR
 BrandingText "${EM_BrandingText}"
@@ -21,7 +21,6 @@ XPStyle on
 
 ; Includes
 !include "MUI2.nsh"
-!include "UAC.nsh"
 
 ;--------------------------------
 ; initialize
@@ -45,25 +44,6 @@ XPStyle on
 !insertmacro MUI_LANGUAGE "Korean"
 
 
-!macro Init_UAC thing
-  uac_tryagain:
-  !insertmacro UAC_RunElevated
-
-  ${Switch} $0
-  ${Case} 0
-    ;${IfThen} $1 = 1 ${|} Quit ${|} ;we are the outer process, the inner process has done its work, we are done
-    ${IfThen} $3 <> 0 ${|} ${Break} ${|} ;we are admin, let the show go on
-    ${If} $1 = 3 ;RunAs completed successfully, but with a non-admin user
-      MessageBox mb_YesNo|mb_IconExclamation|mb_TopMost|mb_SetForeground "${thing}가 관리자권한을 필요로 합니다. 다시 시도할까요?" /SD IDNO IDYES uac_tryagain IDNO 0
-    ${Else}
-      ${Break}
-    ${EndIf}
-  ${Default}
-  ${EndSwitch}
-
-  SetShellVarContext all
-!macroend
-
 !macro check_file_installed filename
   ${If} ${FileExists} `$InstDir\${filename}`
   ${Else}
@@ -77,14 +57,6 @@ Function .onInit
 FunctionEnd
 
 Function validateDirectory
-  CreateDirectory "$InstDir\dummy"
-  ${If} ${Errors}
-    MessageBox MB_OK `설치 권한이 없습니다. 관리자 권한으로 설치를 다시 시작합니다.`
-    !insertmacro Init_UAC "Installer"
-	Quit
-  ${EndIf}
-  RMDir "$InstDir\dummy"
-
   Crypto::HashFile 'MD5' "$InstDir\patch.xp3"
   Pop $0
   StrCmp $0 "3087402b3629ebda59a3613525b4b553" +4 ; 패키지판 hash
@@ -140,13 +112,6 @@ Section "Dummy Section" SecDummy
 SectionEnd
 
 Section "Uninstall"
-  CreateDirectory "$InstDir\dummy"
-  ${If} ${Errors}
-    MessageBox MB_OK `설치 권한이 없습니다. 관리자 권한으로 설치를 다시 시작합니다.`
-    !insertmacro Init_UAC "Uninstall"
-	Quit
-  ${EndIf}
-  
   Delete "$INSTDIR\CafeStella_KR_uninstall.exe"
   Delete "$INSTDIR\CafeStella_KR.exe"
   Delete "$INSTDIR\krkrPatch.dll"
